@@ -28,8 +28,8 @@ To set up this project locally, follow these steps:
 
 1. Clone the repository:
     ```bash
-    git clone https://github.com/harshbansal8705/canvas-socket.git
-    cd canvas-socket
+    git clone https://github.com/ayerhssb/canvas-app-socket.git
+    cd canvas-app-socket
     ```
 
 2. Install dependencies:
@@ -67,5 +67,3 @@ canvas-socket/
 ## Contributing
 Contributions are welcome! Please open an issue or submit a pull request for any improvements or bug fixes.
 
-## License
-This project is licensed under the MIT License.
