@@ -51,11 +51,14 @@ var jwtVerify = require("jose").jwtVerify;
 var cors = require("cors");
 var dotenv = require("dotenv");
 dotenv.config();
-var PORT = 5000;
+if (!process.env.JWT_SECRET) {
+    throw new Error("JWT_SECRET is not defined");
+}
+var PORT = process.env.PORT || 5000;
 var app = express();
 var server = createServer(app);
 var corsOptions = {
-    origin: "*", // Update with your client origin
+    origin: process.env.CLIENT_URL, // process.env.CLIENT_URL || "*"
     methods: ["GET", "POST"],
     allowedHeaders: ["Content-Type"],
     credentials: true
@@ -63,8 +66,11 @@ var corsOptions = {
 app.use(cors(corsOptions));
 var io = new Server(server, {
     cors: {
-        origin: "*",
+        origin: process.env.CLIENT_URL, //process.env.CLIENT_URL || "*"
     },
+});
+app.get("/", function (req, res) {
+    res.send("Canvas Socket Server Running");
 });
 io.use(function (socket, next) { return __awaiter(_this, void 0, void 0, function () {
     var token, user, e_1;
@@ -74,7 +80,6 @@ io.use(function (socket, next) { return __awaiter(_this, void 0, void 0, functio
                 _a.trys.push([0, 4, , 5]);
                 token = socket.handshake.auth.token;
                 if (!token) return [3 /*break*/, 2];
-                console.log(process.env.JWT_SECRET);
                 return [4 /*yield*/, jwtVerify(token, new TextEncoder().encode(process.env.JWT_SECRET || ""))];
             case 1:
                 user = (_a.sent()).payload;
@@ -134,6 +139,9 @@ io.on("connection", function (socket) {
             return;
         socket.broadcast.to(socket.data.room).emit("canvas-data", data);
     });
+    socket.on('canvas-sync', function (data) {
+        socket.broadcast.to(socket.data.room).emit("canvas-sync", data);
+    });
     socket.on("cursor-move", function (data) {
         socket.broadcast.to(socket.data.room).emit("cursor-move", data);
     });
@@ -154,6 +162,7 @@ io.on("connection", function (socket) {
             switch (_a.label) {
                 case 0:
                     console.log("".concat(socket.id, " disconnected"));
+                    if (!socket.data.room) return [2 /*return*/];
                     return [4 /*yield*/, io.in(socket.data.room).fetchSockets()];
                 case 1:
                     users = (_a.sent()).map(function (socket) { return socket.data.user; });
